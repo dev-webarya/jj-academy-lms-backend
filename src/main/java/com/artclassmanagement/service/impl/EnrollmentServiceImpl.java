@@ -1,9 +1,7 @@
 package com.artclassmanagement.service.impl;
 
-import com.artclassmanagement.dto.request.AssignBatchRequestDto;
 import com.artclassmanagement.dto.request.EnrollmentRequestDto;
 import com.artclassmanagement.dto.response.EnrollmentResponseDto;
-import com.artclassmanagement.entity.Batch;
 import com.artclassmanagement.entity.Enrollment;
 import com.artclassmanagement.entity.User;
 import com.artclassmanagement.enums.EnrollmentStatus;
@@ -11,7 +9,6 @@ import com.artclassmanagement.exception.DuplicateResourceException;
 import com.artclassmanagement.exception.InvalidRequestException;
 import com.artclassmanagement.exception.ResourceNotFoundException;
 import com.artclassmanagement.mapper.EnrollmentMapper;
-import com.artclassmanagement.repository.BatchRepository;
 import com.artclassmanagement.repository.EnrollmentRepository;
 import com.artclassmanagement.repository.UserRepository;
 import com.artclassmanagement.service.EnrollmentService;
@@ -24,13 +21,16 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
+/**
+ * Service implementation for LMS Enrollment management.
+ * Simplified - no batch assignment needed.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EnrollmentServiceImpl implements EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;
-    private final BatchRepository batchRepository;
     private final UserRepository userRepository;
     private final EnrollmentMapper enrollmentMapper;
 
@@ -44,9 +44,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw new DuplicateResourceException("You are already enrolled in this class");
         }
 
-        // Verify user has STUDENT role
-        if (!currentUser.getRoles().contains("ROLE_STUDENT")) {
-            throw new InvalidRequestException("Only students can enroll in classes");
+        // Verify user has CUSTOMER role (student)
+        if (!currentUser.getRoles().contains("ROLE_CUSTOMER")) {
+            throw new InvalidRequestException("Only customers can enroll in classes");
         }
 
         Enrollment enrollment = Enrollment.builder()
@@ -54,7 +54,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .studentName(currentUser.getFullName())
                 .studentEmail(currentUser.getEmail())
                 .classId(request.getClassId())
-                .className("Art Class") // TODO: Fetch from ArtAcademy
+                .className("Art Class") // Will be set from request or fetched
                 .status(EnrollmentStatus.PENDING)
                 .enrollmentDate(Instant.now())
                 .notes(request.getNotes())
@@ -84,11 +84,6 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
     @Override
-    public Page<EnrollmentResponseDto> getByBatchId(String batchId, Pageable pageable) {
-        return enrollmentRepository.findByBatchId(batchId, pageable).map(enrollmentMapper::toDto);
-    }
-
-    @Override
     public Page<EnrollmentResponseDto> getByStatus(EnrollmentStatus status, Pageable pageable) {
         return enrollmentRepository.findByStatus(status, pageable).map(enrollmentMapper::toDto);
     }
@@ -97,25 +92,6 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public Page<EnrollmentResponseDto> getMyEnrollments(Pageable pageable) {
         User currentUser = getCurrentUser();
         return enrollmentRepository.findByUserId(currentUser.getId(), pageable).map(enrollmentMapper::toDto);
-    }
-
-    @Override
-    public EnrollmentResponseDto assignToBatch(String enrollmentId, AssignBatchRequestDto request) {
-        log.info("Assigning enrollment {} to batch: {}", enrollmentId, request.getBatchId());
-
-        Enrollment enrollment = findById(enrollmentId);
-        Batch batch = batchRepository.findById(request.getBatchId())
-                .orElseThrow(() -> new ResourceNotFoundException("Batch", "id", request.getBatchId()));
-
-        if (!batch.hasAvailableSlots()) {
-            throw new InvalidRequestException("Batch is full, no available slots");
-        }
-
-        enrollment.assignToBatch(batch.getId(), batch.getBatchName());
-        batch.incrementStudentCount();
-
-        batchRepository.save(batch);
-        return enrollmentMapper.toDto(enrollmentRepository.save(enrollment));
     }
 
     @Override
@@ -133,16 +109,6 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public void delete(String id) {
         log.warn("Deleting enrollment: {}", id);
         Enrollment enrollment = findById(id);
-
-        // Decrement batch count if assigned
-        if (enrollment.getBatchId() != null) {
-            batchRepository.findById(enrollment.getBatchId())
-                    .ifPresent(batch -> {
-                        batch.decrementStudentCount();
-                        batchRepository.save(batch);
-                    });
-        }
-
         enrollmentRepository.delete(enrollment);
     }
 

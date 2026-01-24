@@ -4,7 +4,6 @@ import com.artclassmanagement.enums.EventType;
 import lombok.Data;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 public class EventResponseDto {
@@ -20,7 +19,7 @@ public class EventResponseDto {
     private String meetingPassword;
     private String imageUrl;
     private String bannerUrl;
-    private List<String> instructorIds;
+
     private Integer maxParticipants;
     private Integer currentParticipants;
     private Boolean isPublic;

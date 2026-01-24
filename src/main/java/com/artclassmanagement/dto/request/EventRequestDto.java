@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 public class EventRequestDto {
@@ -36,8 +35,6 @@ public class EventRequestDto {
     private String imageUrl;
 
     private String bannerUrl;
-
-    private List<String> instructorIds;
 
     private Integer maxParticipants;
 

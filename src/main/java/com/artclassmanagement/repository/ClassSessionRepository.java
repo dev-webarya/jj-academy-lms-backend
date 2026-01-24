@@ -12,17 +12,23 @@ import java.util.List;
 
 @Repository
 public interface ClassSessionRepository extends MongoRepository<ClassSession, String> {
-    Page<ClassSession> findByBatchId(String batchId, Pageable pageable);
 
-    Page<ClassSession> findByInstructorId(String instructorId, Pageable pageable);
+    // Find sessions by date
+    List<ClassSession> findBySessionDate(LocalDate sessionDate);
 
-    List<ClassSession> findByBatchIdAndSessionDate(String batchId, LocalDate sessionDate);
+    // Find sessions by date range
+    List<ClassSession> findBySessionDateBetween(LocalDate startDate, LocalDate endDate);
 
-    List<ClassSession> findByBatchIdAndSessionDateBetween(String batchId, LocalDate startDate, LocalDate endDate);
+    // Find upcoming sessions (date >= today)
+    Page<ClassSession> findBySessionDateGreaterThanEqualAndStatus(
+            LocalDate date, SessionStatus status, Pageable pageable);
 
-    List<ClassSession> findByInstructorIdAndSessionDate(String instructorId, LocalDate sessionDate);
-
+    // Find sessions by status
     Page<ClassSession> findByStatus(SessionStatus status, Pageable pageable);
 
-    List<ClassSession> findByBatchIdAndStatus(String batchId, SessionStatus status);
+    // Find sessions ordered by date
+    Page<ClassSession> findAllByOrderBySessionDateDesc(Pageable pageable);
+
+    // Count sessions for a date range
+    long countBySessionDateBetween(LocalDate startDate, LocalDate endDate);
 }

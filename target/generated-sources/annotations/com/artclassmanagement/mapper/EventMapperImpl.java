@@ -3,14 +3,12 @@ package com.artclassmanagement.mapper;
 import com.artclassmanagement.dto.request.EventRequestDto;
 import com.artclassmanagement.dto.response.EventResponseDto;
 import com.artclassmanagement.entity.Event;
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-01-18T19:35:18+0530",
+    date = "2026-01-24T16:54:48+0530",
     comments = "version: 1.6.2, compiler: Eclipse JDT (IDE) 3.45.0.v20260101-2150, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
@@ -30,10 +28,6 @@ public class EventMapperImpl implements EventMapper {
         event.eventType( dto.getEventType() );
         event.fee( dto.getFee() );
         event.imageUrl( dto.getImageUrl() );
-        List<String> list = dto.getInstructorIds();
-        if ( list != null ) {
-            event.instructorIds( new ArrayList<String>( list ) );
-        }
         event.isOnline( dto.getIsOnline() );
         event.isPublic( dto.getIsPublic() );
         event.location( dto.getLocation() );
@@ -64,10 +58,6 @@ public class EventMapperImpl implements EventMapper {
         eventResponseDto.setFee( entity.getFee() );
         eventResponseDto.setId( entity.getId() );
         eventResponseDto.setImageUrl( entity.getImageUrl() );
-        List<String> list = entity.getInstructorIds();
-        if ( list != null ) {
-            eventResponseDto.setInstructorIds( new ArrayList<String>( list ) );
-        }
         eventResponseDto.setIsOnline( entity.getIsOnline() );
         eventResponseDto.setIsPublic( entity.getIsPublic() );
         eventResponseDto.setIsRegistrationOpen( entity.getIsRegistrationOpen() );
@@ -96,22 +86,6 @@ public class EventMapperImpl implements EventMapper {
         entity.setEventType( dto.getEventType() );
         entity.setFee( dto.getFee() );
         entity.setImageUrl( dto.getImageUrl() );
-        if ( entity.getInstructorIds() != null ) {
-            List<String> list = dto.getInstructorIds();
-            if ( list != null ) {
-                entity.getInstructorIds().clear();
-                entity.getInstructorIds().addAll( list );
-            }
-            else {
-                entity.setInstructorIds( null );
-            }
-        }
-        else {
-            List<String> list = dto.getInstructorIds();
-            if ( list != null ) {
-                entity.setInstructorIds( new ArrayList<String>( list ) );
-            }
-        }
         entity.setIsOnline( dto.getIsOnline() );
         entity.setIsPublic( dto.getIsPublic() );
         entity.setLocation( dto.getLocation() );

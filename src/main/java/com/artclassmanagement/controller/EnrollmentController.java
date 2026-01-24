@@ -1,9 +1,9 @@
 package com.artclassmanagement.controller;
 
-import com.artclassmanagement.dto.request.AssignBatchRequestDto;
 import com.artclassmanagement.dto.request.EnrollmentRequestDto;
 import com.artclassmanagement.dto.response.EnrollmentResponseDto;
 import com.artclassmanagement.enums.EnrollmentStatus;
+import com.artclassmanagement.security.annotations.AdminOnly;
 import com.artclassmanagement.service.EnrollmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,8 +17,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller for managing LMS Enrollments.
+ * Simplified - no batch assignment needed.
+ */
 @RestController
-@RequestMapping("/api/v1/enrollments")
+@RequestMapping("/api/enrollments")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Enrollments", description = "Enrollment management endpoints")
@@ -27,7 +31,7 @@ public class EnrollmentController {
     private final EnrollmentService enrollmentService;
 
     @PostMapping
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     @Operation(summary = "Enroll in a class (Student)")
     public ResponseEntity<EnrollmentResponseDto> enroll(@Valid @RequestBody EnrollmentRequestDto request) {
         return new ResponseEntity<>(enrollmentService.enroll(request), HttpStatus.CREATED);
@@ -40,7 +44,7 @@ public class EnrollmentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @AdminOnly
     @Operation(summary = "Get all enrollments (Admin)")
     public ResponseEntity<Page<EnrollmentResponseDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(enrollmentService.getAll(pageable));
@@ -53,40 +57,23 @@ public class EnrollmentController {
     }
 
     @GetMapping("/class/{classId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('INSTRUCTOR')")
+    @AdminOnly
     @Operation(summary = "Get enrollments by class")
     public ResponseEntity<Page<EnrollmentResponseDto>> getByClassId(
             @PathVariable String classId, Pageable pageable) {
         return ResponseEntity.ok(enrollmentService.getByClassId(classId, pageable));
     }
 
-    @GetMapping("/batch/{batchId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('INSTRUCTOR')")
-    @Operation(summary = "Get enrollments by batch")
-    public ResponseEntity<Page<EnrollmentResponseDto>> getByBatchId(
-            @PathVariable String batchId, Pageable pageable) {
-        return ResponseEntity.ok(enrollmentService.getByBatchId(batchId, pageable));
-    }
-
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @AdminOnly
     @Operation(summary = "Get enrollments by status (Admin)")
     public ResponseEntity<Page<EnrollmentResponseDto>> getByStatus(
             @PathVariable EnrollmentStatus status, Pageable pageable) {
         return ResponseEntity.ok(enrollmentService.getByStatus(status, pageable));
     }
 
-    @PostMapping("/{id}/assign-batch")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Assign enrollment to batch (Admin)")
-    public ResponseEntity<EnrollmentResponseDto> assignToBatch(
-            @PathVariable String id,
-            @Valid @RequestBody AssignBatchRequestDto request) {
-        return ResponseEntity.ok(enrollmentService.assignToBatch(id, request));
-    }
-
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @AdminOnly
     @Operation(summary = "Update enrollment status (Admin)")
     public ResponseEntity<EnrollmentResponseDto> updateStatus(
             @PathVariable String id,
@@ -96,7 +83,7 @@ public class EnrollmentController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @AdminOnly
     @Operation(summary = "Delete enrollment (Admin)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {

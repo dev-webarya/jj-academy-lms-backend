@@ -11,16 +11,14 @@ import org.mapstruct.MappingTarget;
 public interface ClassSessionMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "batchName", ignore = true)
-    @Mapping(target = "instructorId", ignore = true)
-    @Mapping(target = "instructorName", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "cancellationReason", ignore = true)
-    @Mapping(target = "rescheduledTo", ignore = true)
     @Mapping(target = "totalStudents", ignore = true)
     @Mapping(target = "presentCount", ignore = true)
     @Mapping(target = "absentCount", ignore = true)
     @Mapping(target = "attendanceTaken", ignore = true)
+    @Mapping(target = "attendanceTakenAt", ignore = true)
+    @Mapping(target = "attendanceRecords", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     ClassSession toEntity(ClassSessionRequestDto dto);
@@ -28,11 +26,8 @@ public interface ClassSessionMapper {
     ClassSessionResponseDto toDto(ClassSession entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "batchId", ignore = true)
-    @Mapping(target = "batchName", ignore = true)
-    @Mapping(target = "instructorId", ignore = true)
-    @Mapping(target = "instructorName", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "attendanceRecords", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(ClassSessionRequestDto dto, @MappingTarget ClassSession entity);

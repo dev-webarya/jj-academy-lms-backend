@@ -2,17 +2,23 @@ package com.artclassmanagement.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 
+/**
+ * Request DTO for creating/updating a class session.
+ * Simplified - no batch/instructor references.
+ */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClassSessionRequestDto {
-
-    @NotBlank(message = "Batch ID is required")
-    private String batchId;
 
     @NotNull(message = "Session date is required")
     private LocalDate sessionDate;
@@ -31,6 +37,4 @@ public class ClassSessionRequestDto {
     private String meetingLink;
 
     private String meetingPassword;
-
-    private List<String> materials;
 }

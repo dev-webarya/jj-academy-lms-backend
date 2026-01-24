@@ -3,6 +3,7 @@ package com.artclassmanagement.controller;
 import com.artclassmanagement.dto.request.ClassSessionRequestDto;
 import com.artclassmanagement.dto.response.ClassSessionResponseDto;
 import com.artclassmanagement.enums.SessionStatus;
+import com.artclassmanagement.security.annotations.AdminOnly;
 import com.artclassmanagement.service.ClassSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,24 +15,27 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * REST Controller for class session management.
+ * All write operations require ADMIN role.
+ */
 @RestController
-@RequestMapping("/api/v1/sessions")
+@RequestMapping("/api/sessions")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Class Sessions", description = "Class session scheduling endpoints")
+@Tag(name = "Class Sessions", description = "Class session management (Admin)")
 public class ClassSessionController {
 
     private final ClassSessionService sessionService;
 
     @PostMapping
-    @PreAuthorize("hasRole('INSTRUCTOR')")
-    @Operation(summary = "Create a class session (Instructor)")
+    @AdminOnly
+    @Operation(summary = "Create a class session")
     public ResponseEntity<ClassSessionResponseDto> create(@Valid @RequestBody ClassSessionRequestDto request) {
         return new ResponseEntity<>(sessionService.create(request), HttpStatus.CREATED);
     }
@@ -42,31 +46,42 @@ public class ClassSessionController {
         return ResponseEntity.ok(sessionService.getById(id));
     }
 
-    @GetMapping("/batch/{batchId}")
-    @Operation(summary = "Get sessions by batch ID")
-    public ResponseEntity<Page<ClassSessionResponseDto>> getByBatchId(
-            @PathVariable String batchId, Pageable pageable) {
-        return ResponseEntity.ok(sessionService.getByBatchId(batchId, pageable));
+    @GetMapping
+    @Operation(summary = "Get all sessions (paginated)")
+    public ResponseEntity<Page<ClassSessionResponseDto>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(sessionService.getAll(pageable));
     }
 
-    @GetMapping("/instructor/{instructorId}")
-    @Operation(summary = "Get sessions by instructor ID")
-    public ResponseEntity<Page<ClassSessionResponseDto>> getByInstructorId(
-            @PathVariable String instructorId, Pageable pageable) {
-        return ResponseEntity.ok(sessionService.getByInstructorId(instructorId, pageable));
+    @GetMapping("/date/{date}")
+    @Operation(summary = "Get sessions by date")
+    public ResponseEntity<List<ClassSessionResponseDto>> getByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(sessionService.getByDate(date));
     }
 
-    @GetMapping("/batch/{batchId}/range")
-    @Operation(summary = "Get sessions by batch and date range")
-    public ResponseEntity<List<ClassSessionResponseDto>> getByBatchIdAndDateRange(
-            @PathVariable String batchId,
+    @GetMapping("/range")
+    @Operation(summary = "Get sessions by date range")
+    public ResponseEntity<List<ClassSessionResponseDto>> getByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(sessionService.getByBatchIdAndDateRange(batchId, startDate, endDate));
+        return ResponseEntity.ok(sessionService.getByDateRange(startDate, endDate));
+    }
+
+    @GetMapping("/upcoming")
+    @Operation(summary = "Get upcoming sessions (paginated)")
+    public ResponseEntity<Page<ClassSessionResponseDto>> getUpcoming(Pageable pageable) {
+        return ResponseEntity.ok(sessionService.getUpcoming(pageable));
+    }
+
+    @GetMapping("/{id}/attendance")
+    @AdminOnly
+    @Operation(summary = "Get session with attendance records")
+    public ResponseEntity<ClassSessionResponseDto> getSessionWithAttendance(@PathVariable String id) {
+        return ResponseEntity.ok(sessionService.getSessionWithAttendance(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
+    @AdminOnly
     @Operation(summary = "Update session")
     public ResponseEntity<ClassSessionResponseDto> update(
             @PathVariable String id,
@@ -75,7 +90,7 @@ public class ClassSessionController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
+    @AdminOnly
     @Operation(summary = "Update session status")
     public ResponseEntity<ClassSessionResponseDto> updateStatus(
             @PathVariable String id,
@@ -85,7 +100,7 @@ public class ClassSessionController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
+    @AdminOnly
     @Operation(summary = "Delete session")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {

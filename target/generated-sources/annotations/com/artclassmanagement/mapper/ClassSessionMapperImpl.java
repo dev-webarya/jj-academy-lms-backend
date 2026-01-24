@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-01-18T19:35:17+0530",
+    date = "2026-01-24T16:54:47+0530",
     comments = "version: 1.6.2, compiler: Eclipse JDT (IDE) 3.45.0.v20260101-2150, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
@@ -24,13 +24,8 @@ public class ClassSessionMapperImpl implements ClassSessionMapper {
 
         ClassSession.ClassSessionBuilder classSession = ClassSession.builder();
 
-        classSession.batchId( dto.getBatchId() );
         classSession.description( dto.getDescription() );
         classSession.endTime( dto.getEndTime() );
-        List<String> list = dto.getMaterials();
-        if ( list != null ) {
-            classSession.materials( new ArrayList<String>( list ) );
-        }
         classSession.meetingLink( dto.getMeetingLink() );
         classSession.meetingPassword( dto.getMeetingPassword() );
         classSession.sessionDate( dto.getSessionDate() );
@@ -46,35 +41,28 @@ public class ClassSessionMapperImpl implements ClassSessionMapper {
             return null;
         }
 
-        ClassSessionResponseDto classSessionResponseDto = new ClassSessionResponseDto();
+        ClassSessionResponseDto.ClassSessionResponseDtoBuilder classSessionResponseDto = ClassSessionResponseDto.builder();
 
-        classSessionResponseDto.setAbsentCount( entity.getAbsentCount() );
-        classSessionResponseDto.setAttendanceTaken( entity.getAttendanceTaken() );
-        classSessionResponseDto.setBatchId( entity.getBatchId() );
-        classSessionResponseDto.setBatchName( entity.getBatchName() );
-        classSessionResponseDto.setCancellationReason( entity.getCancellationReason() );
-        classSessionResponseDto.setCreatedAt( entity.getCreatedAt() );
-        classSessionResponseDto.setDescription( entity.getDescription() );
-        classSessionResponseDto.setEndTime( entity.getEndTime() );
-        classSessionResponseDto.setId( entity.getId() );
-        classSessionResponseDto.setInstructorId( entity.getInstructorId() );
-        classSessionResponseDto.setInstructorName( entity.getInstructorName() );
-        List<String> list = entity.getMaterials();
-        if ( list != null ) {
-            classSessionResponseDto.setMaterials( new ArrayList<String>( list ) );
-        }
-        classSessionResponseDto.setMeetingLink( entity.getMeetingLink() );
-        classSessionResponseDto.setMeetingPassword( entity.getMeetingPassword() );
-        classSessionResponseDto.setPresentCount( entity.getPresentCount() );
-        classSessionResponseDto.setRescheduledTo( entity.getRescheduledTo() );
-        classSessionResponseDto.setSessionDate( entity.getSessionDate() );
-        classSessionResponseDto.setStartTime( entity.getStartTime() );
-        classSessionResponseDto.setStatus( entity.getStatus() );
-        classSessionResponseDto.setTopic( entity.getTopic() );
-        classSessionResponseDto.setTotalStudents( entity.getTotalStudents() );
-        classSessionResponseDto.setUpdatedAt( entity.getUpdatedAt() );
+        classSessionResponseDto.absentCount( entity.getAbsentCount() );
+        classSessionResponseDto.attendanceRecords( sessionAttendanceRecordListToAttendanceRecordDtoList( entity.getAttendanceRecords() ) );
+        classSessionResponseDto.attendanceTaken( entity.getAttendanceTaken() );
+        classSessionResponseDto.attendanceTakenAt( entity.getAttendanceTakenAt() );
+        classSessionResponseDto.cancellationReason( entity.getCancellationReason() );
+        classSessionResponseDto.createdAt( entity.getCreatedAt() );
+        classSessionResponseDto.description( entity.getDescription() );
+        classSessionResponseDto.endTime( entity.getEndTime() );
+        classSessionResponseDto.id( entity.getId() );
+        classSessionResponseDto.meetingLink( entity.getMeetingLink() );
+        classSessionResponseDto.meetingPassword( entity.getMeetingPassword() );
+        classSessionResponseDto.presentCount( entity.getPresentCount() );
+        classSessionResponseDto.sessionDate( entity.getSessionDate() );
+        classSessionResponseDto.startTime( entity.getStartTime() );
+        classSessionResponseDto.status( entity.getStatus() );
+        classSessionResponseDto.topic( entity.getTopic() );
+        classSessionResponseDto.totalStudents( entity.getTotalStudents() );
+        classSessionResponseDto.updatedAt( entity.getUpdatedAt() );
 
-        return classSessionResponseDto;
+        return classSessionResponseDto.build();
     }
 
     @Override
@@ -85,26 +73,43 @@ public class ClassSessionMapperImpl implements ClassSessionMapper {
 
         entity.setDescription( dto.getDescription() );
         entity.setEndTime( dto.getEndTime() );
-        if ( entity.getMaterials() != null ) {
-            List<String> list = dto.getMaterials();
-            if ( list != null ) {
-                entity.getMaterials().clear();
-                entity.getMaterials().addAll( list );
-            }
-            else {
-                entity.setMaterials( null );
-            }
-        }
-        else {
-            List<String> list = dto.getMaterials();
-            if ( list != null ) {
-                entity.setMaterials( new ArrayList<String>( list ) );
-            }
-        }
         entity.setMeetingLink( dto.getMeetingLink() );
         entity.setMeetingPassword( dto.getMeetingPassword() );
         entity.setSessionDate( dto.getSessionDate() );
         entity.setStartTime( dto.getStartTime() );
         entity.setTopic( dto.getTopic() );
+    }
+
+    protected ClassSessionResponseDto.AttendanceRecordDto sessionAttendanceRecordToAttendanceRecordDto(ClassSession.SessionAttendanceRecord sessionAttendanceRecord) {
+        if ( sessionAttendanceRecord == null ) {
+            return null;
+        }
+
+        ClassSessionResponseDto.AttendanceRecordDto.AttendanceRecordDtoBuilder attendanceRecordDto = ClassSessionResponseDto.AttendanceRecordDto.builder();
+
+        attendanceRecordDto.isOverLimit( sessionAttendanceRecord.getIsOverLimit() );
+        attendanceRecordDto.isPresent( sessionAttendanceRecord.getIsPresent() );
+        attendanceRecordDto.markedAt( sessionAttendanceRecord.getMarkedAt() );
+        attendanceRecordDto.remarks( sessionAttendanceRecord.getRemarks() );
+        attendanceRecordDto.sessionCountThisMonth( sessionAttendanceRecord.getSessionCountThisMonth() );
+        attendanceRecordDto.studentEmail( sessionAttendanceRecord.getStudentEmail() );
+        attendanceRecordDto.studentId( sessionAttendanceRecord.getStudentId() );
+        attendanceRecordDto.studentName( sessionAttendanceRecord.getStudentName() );
+        attendanceRecordDto.subscriptionId( sessionAttendanceRecord.getSubscriptionId() );
+
+        return attendanceRecordDto.build();
+    }
+
+    protected List<ClassSessionResponseDto.AttendanceRecordDto> sessionAttendanceRecordListToAttendanceRecordDtoList(List<ClassSession.SessionAttendanceRecord> list) {
+        if ( list == null ) {
+            return null;
+        }
+
+        List<ClassSessionResponseDto.AttendanceRecordDto> list1 = new ArrayList<ClassSessionResponseDto.AttendanceRecordDto>( list.size() );
+        for ( ClassSession.SessionAttendanceRecord sessionAttendanceRecord : list ) {
+            list1.add( sessionAttendanceRecordToAttendanceRecordDto( sessionAttendanceRecord ) );
+        }
+
+        return list1;
     }
 }

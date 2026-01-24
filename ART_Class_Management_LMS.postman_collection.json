@@ -1,0 +1,1279 @@
+                                                                                    {
+	"info": {
+		"_postman_id": "lms-art-class-management",
+		"name": "ART Class Management - LMS API",
+		"description": "Complete API collection for the Art Academy Learning Management System. This collection includes all endpoints for authentication, instructors, batches, class sessions, enrollments, attendance, events, and gallery management.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8096",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"description": "Authentication endpoints for user registration, login, and token management",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('userId', jsonData.userId);",
+									"    pm.test('Registration successful', function() {",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\",\n    \"phoneNumber\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						},
+						"description": "Register a new user account. User is enabled immediately."
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.refresh_token);",
+									"    pm.collectionVariables.set('currentUserId', jsonData.user_id);",
+									"    pm.test('Login successful', function() {",
+									"        pm.expect(jsonData.access_token).to.exist;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login with email and password to get JWT tokens"
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', jsonData.access_token);",
+									"    pm.test('Token refreshed successfully', function() {",
+									"        pm.expect(jsonData.access_token).to.exist;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "refresh"]
+						},
+						"description": "Get a new access token using the refresh token"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "logout"]
+						},
+						"description": "Logout and invalidate the current token"
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Instructors",
+			"description": "Instructor management endpoints",
+			"item": [
+				{
+					"name": "Create Instructor (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('instructorId', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{currentUserId}}\",\n    \"displayName\": \"Prof. Art Master\",\n    \"bio\": \"Expert in oil painting with 15 years of experience\",\n    \"profileImageUrl\": \"https://example.com/profile.jpg\",\n    \"specializations\": [\"Oil Painting\", \"Watercolor\", \"Sketching\"],\n    \"qualifications\": [\"MFA in Fine Arts\", \"Certified Art Instructor\"],\n    \"yearsOfExperience\": 15,\n    \"linkedInUrl\": \"https://linkedin.com/in/artmaster\",\n    \"portfolioUrl\": \"https://artmaster.portfolio.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors"]
+						}
+					}
+				},
+				{
+					"name": "Get All Instructors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Active Instructors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors/active?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors", "active"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Instructor by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors/{{instructorId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors", "{{instructorId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Instructor by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors/user/{{currentUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors", "user", "{{currentUserId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Instructor",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{currentUserId}}\",\n    \"displayName\": \"Prof. Art Master Updated\",\n    \"bio\": \"Updated bio - Expert in oil painting with 16 years of experience\",\n    \"yearsOfExperience\": 16\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors/{{instructorId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors", "{{instructorId}}"]
+						}
+					}
+				},
+				{
+					"name": "Toggle Instructor Active (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors/{{instructorId}}/active?isActive=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors", "{{instructorId}}", "active"],
+							"query": [
+								{"key": "isActive", "value": "true"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Instructor (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/instructors/{{instructorId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "instructors", "{{instructorId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Batches",
+			"description": "Batch management endpoints",
+			"item": [
+				{
+					"name": "Create Batch (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('batchId', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"classId\": \"{{classId}}\",\n    \"batchName\": \"Morning Batch - Oil Painting\",\n    \"batchCode\": \"OIL-M-2026\",\n    \"instructorId\": \"{{instructorId}}\",\n    \"classDays\": [\"MONDAY\", \"WEDNESDAY\", \"FRIDAY\"],\n    \"startTime\": {\"hour\": 9, \"minute\": 0, \"second\": 0, \"nano\": 0},\n    \"endTime\": {\"hour\": 11, \"minute\": 0, \"second\": 0, \"nano\": 0},\n    \"timezone\": \"Asia/Kolkata\",\n    \"maxStudents\": 20,\n    \"startDate\": \"2026-02-01\",\n    \"endDate\": \"2026-04-30\",\n    \"description\": \"Intensive oil painting course for beginners\",\n    \"location\": \"Room 101, Art Building\",\n    \"defaultMeetingLink\": \"https://meet.example.com/batch-oil-m-2026\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches"]
+						}
+					}
+				},
+				{
+					"name": "Get All Batches",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Batch by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches/{{batchId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches", "{{batchId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Batches by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches/status/ACTIVE?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches", "status", "ACTIVE"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Batches by Class ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches/class/{{classId}}?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches", "class", "{{classId}}"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Batches by Instructor ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches/instructor/{{instructorId}}?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches", "instructor", "{{instructorId}}"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Batch (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"classId\": \"{{classId}}\",\n    \"batchName\": \"Morning Batch - Oil Painting (Updated)\",\n    \"batchCode\": \"OIL-M-2026\",\n    \"instructorId\": \"{{instructorId}}\",\n    \"classDays\": [\"MONDAY\", \"WEDNESDAY\", \"FRIDAY\"],\n    \"startTime\": {\"hour\": 9, \"minute\": 30, \"second\": 0, \"nano\": 0},\n    \"endTime\": {\"hour\": 11, \"minute\": 30, \"second\": 0, \"nano\": 0},\n    \"timezone\": \"Asia/Kolkata\",\n    \"maxStudents\": 25,\n    \"startDate\": \"2026-02-01\",\n    \"endDate\": \"2026-05-31\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches/{{batchId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches", "{{batchId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Batch Status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches/{{batchId}}/status?status=ACTIVE",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches", "{{batchId}}", "status"],
+							"query": [
+								{"key": "status", "value": "ACTIVE"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Batch (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/batches/{{batchId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "batches", "{{batchId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Class Sessions",
+			"description": "Class session scheduling endpoints",
+			"item": [
+				{
+					"name": "Create Session (Instructor)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('sessionId', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchId\": \"{{batchId}}\",\n    \"sessionDate\": \"2026-02-03\",\n    \"startTime\": {\"hour\": 9, \"minute\": 0, \"second\": 0, \"nano\": 0},\n    \"endTime\": {\"hour\": 11, \"minute\": 0, \"second\": 0, \"nano\": 0},\n    \"topic\": \"Introduction to Oil Painting Techniques\",\n    \"description\": \"Learn the fundamentals of oil painting including brush handling, color mixing, and canvas preparation\",\n    \"meetingLink\": \"https://meet.example.com/session-1\",\n    \"meetingPassword\": \"art123\",\n    \"materials\": [\"Canvas\", \"Oil paints set\", \"Brushes\", \"Palette\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions"]
+						}
+					}
+				},
+				{
+					"name": "Get Session by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/{{sessionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "{{sessionId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Sessions by Batch",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/batch/{{batchId}}?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "batch", "{{batchId}}"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Sessions by Instructor",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/instructor/{{instructorId}}?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "instructor", "{{instructorId}}"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Sessions by Date Range",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/batch/{{batchId}}/range?startDate=2026-02-01&endDate=2026-02-28",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "batch", "{{batchId}}", "range"],
+							"query": [
+								{"key": "startDate", "value": "2026-02-01"},
+								{"key": "endDate", "value": "2026-02-28"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Session",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchId\": \"{{batchId}}\",\n    \"sessionDate\": \"2026-02-03\",\n    \"startTime\": {\"hour\": 10, \"minute\": 0, \"second\": 0, \"nano\": 0},\n    \"endTime\": {\"hour\": 12, \"minute\": 0, \"second\": 0, \"nano\": 0},\n    \"topic\": \"Introduction to Oil Painting Techniques (Updated)\",\n    \"description\": \"Updated session description\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/{{sessionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "{{sessionId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Session Status",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/{{sessionId}}/status?status=COMPLETED",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "{{sessionId}}", "status"],
+							"query": [
+								{"key": "status", "value": "COMPLETED"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Cancel Session",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/{{sessionId}}/status?status=CANCELLED&reason=Instructor unavailable",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "{{sessionId}}", "status"],
+							"query": [
+								{"key": "status", "value": "CANCELLED"},
+								{"key": "reason", "value": "Instructor unavailable"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Session",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sessions/{{sessionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "sessions", "{{sessionId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Enrollments",
+			"description": "Enrollment management endpoints",
+			"item": [
+				{
+					"name": "Enroll in Class (Student)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('enrollmentId', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"classId\": \"{{classId}}\",\n    \"notes\": \"Interested in learning oil painting from basics\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments"]
+						}
+					}
+				},
+				{
+					"name": "Get All Enrollments (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Enrollment by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/{{enrollmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "{{enrollmentId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get My Enrollments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/my-enrollments?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "my-enrollments"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Enrollments by Status (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/status/PENDING?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "status", "PENDING"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Enrollments by Class",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/class/{{classId}}?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "class", "{{classId}}"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Enrollments by Batch",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/batch/{{batchId}}?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "batch", "{{batchId}}"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Assign to Batch (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batchId\": \"{{batchId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/{{enrollmentId}}/assign-batch",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "{{enrollmentId}}", "assign-batch"]
+						}
+					}
+				},
+				{
+					"name": "Update Enrollment Status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/{{enrollmentId}}/status?status=APPROVED&notes=Payment verified",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "{{enrollmentId}}", "status"],
+							"query": [
+								{"key": "status", "value": "APPROVED"},
+								{"key": "notes", "value": "Payment verified"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Enrollment (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/enrollments/{{enrollmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "enrollments", "{{enrollmentId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Attendance",
+			"description": "Attendance management endpoints",
+			"item": [
+				{
+					"name": "Mark Attendance (Instructor)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sessionId\": \"{{sessionId}}\",\n    \"attendanceRecords\": [\n        {\n            \"studentId\": \"{{studentId}}\",\n            \"status\": \"PRESENT\",\n            \"remarks\": \"On time\"\n        },\n        {\n            \"studentId\": \"student-id-2\",\n            \"status\": \"LATE\",\n            \"remarks\": \"Arrived 10 minutes late\",\n            \"lateByMinutes\": 10\n        },\n        {\n            \"studentId\": \"student-id-3\",\n            \"status\": \"ABSENT\",\n            \"remarks\": \"Not present\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/attendance",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "attendance"]
+						}
+					}
+				},
+				{
+					"name": "Get Attendance by Session",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/attendance/session/{{sessionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "attendance", "session", "{{sessionId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Attendance by Student",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/attendance/student/{{studentId}}?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "attendance", "student", "{{studentId}}"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Student Batch Attendance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/attendance/student/{{studentId}}/batch/{{batchId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "attendance", "student", "{{studentId}}", "batch", "{{batchId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get My Attendance (Student)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/attendance/my-attendance?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "attendance", "my-attendance"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Events",
+			"description": "Event management endpoints",
+			"item": [
+				{
+					"name": "Create Event (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('eventId', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Annual Art Exhibition 2026\",\n    \"description\": \"Showcase your artwork at our annual exhibition featuring works from students and professional artists\",\n    \"eventType\": \"EXHIBITION\",\n    \"startDateTime\": \"2026-03-15T10:00:00\",\n    \"endDateTime\": \"2026-03-17T18:00:00\",\n    \"location\": \"Art Academy Main Hall\",\n    \"isOnline\": false,\n    \"imageUrl\": \"https://example.com/exhibition.jpg\",\n    \"bannerUrl\": \"https://example.com/exhibition-banner.jpg\",\n    \"instructorIds\": [\"{{instructorId}}\"],\n    \"maxParticipants\": 100,\n    \"isPublic\": true,\n    \"fee\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events"]
+						}
+					}
+				},
+				{
+					"name": "Get All Events (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Public Events",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events/public?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events", "public"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Event by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events/{{eventId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events", "{{eventId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Events by Type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events/type/EXHIBITION?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events", "type", "EXHIBITION"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Event (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Annual Art Exhibition 2026 - Updated\",\n    \"description\": \"Updated description for the exhibition\",\n    \"eventType\": \"EXHIBITION\",\n    \"startDateTime\": \"2026-03-15T10:00:00\",\n    \"endDateTime\": \"2026-03-18T18:00:00\",\n    \"location\": \"Art Academy Main Hall - Extended\",\n    \"isOnline\": false,\n    \"maxParticipants\": 150,\n    \"isPublic\": true,\n    \"fee\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events/{{eventId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events", "{{eventId}}"]
+						}
+					}
+				},
+				{
+					"name": "Toggle Registration (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events/{{eventId}}/registration?open=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events", "{{eventId}}", "registration"],
+							"query": [
+								{"key": "open", "value": "true"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Event (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/events/{{eventId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "events", "{{eventId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Gallery",
+			"description": "Gallery management with verification workflow",
+			"item": [
+				{
+					"name": "Upload Gallery Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('galleryItemId', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Sunset Over Mountains\",\n    \"description\": \"Oil painting depicting a beautiful sunset over mountain ranges\",\n    \"mediaUrl\": \"https://example.com/artwork/sunset-mountains.jpg\",\n    \"mediaType\": \"IMAGE\",\n    \"thumbnailUrl\": \"https://example.com/artwork/sunset-mountains-thumb.jpg\",\n    \"classId\": \"{{classId}}\",\n    \"batchId\": \"{{batchId}}\",\n    \"tags\": [\"oil painting\", \"landscape\", \"sunset\", \"mountains\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery"]
+						}
+					}
+				},
+				{
+					"name": "Get Gallery Item by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/{{galleryItemId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "{{galleryItemId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Public Gallery Items",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/public?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "public"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Featured Gallery Items",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/featured?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "featured"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Pending Gallery Items (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/pending?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "pending"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Uploads",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/my-uploads?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "my-uploads"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Gallery Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Sunset Over Mountains - Final Version\",\n    \"description\": \"Updated oil painting depicting a beautiful sunset\",\n    \"mediaUrl\": \"https://example.com/artwork/sunset-mountains-v2.jpg\",\n    \"mediaType\": \"IMAGE\",\n    \"tags\": [\"oil painting\", \"landscape\", \"sunset\", \"mountains\", \"final\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/{{galleryItemId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "{{galleryItemId}}"]
+						}
+					}
+				},
+				{
+					"name": "Approve Gallery Item (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"approved\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/{{galleryItemId}}/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "{{galleryItemId}}", "verify"]
+						}
+					}
+				},
+				{
+					"name": "Reject Gallery Item (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"approved\": false,\n    \"rejectionReason\": \"Image quality does not meet standards. Please upload a higher resolution image.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/{{galleryItemId}}/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "{{galleryItemId}}", "verify"]
+						}
+					}
+				},
+				{
+					"name": "Toggle Featured (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/{{galleryItemId}}/featured?featured=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "{{galleryItemId}}", "featured"],
+							"query": [
+								{"key": "featured", "value": "true"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Gallery Item",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/gallery/{{galleryItemId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "gallery", "{{galleryItemId}}"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

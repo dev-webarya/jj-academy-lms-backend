@@ -9,9 +9,11 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
- * Attendance - Per-student per-session attendance record
+ * Attendance - Per-student per-session attendance record.
+ * Tracks monthly session count and over-limit status.
  */
 @Getter
 @Setter
@@ -20,6 +22,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @Document(collection = "lms_attendance")
 @CompoundIndex(name = "session_student_idx", def = "{'sessionId': 1, 'studentId': 1}", unique = true)
+@CompoundIndex(name = "student_month_year_idx", def = "{'studentId': 1, 'sessionMonth': 1, 'sessionYear': 1}")
 public class Attendance {
 
     @Id
@@ -29,51 +32,49 @@ public class Attendance {
     private String sessionId;
 
     @Indexed
-    private String batchId;
-
-    @Indexed
     private String studentId;
 
     private String studentName; // Denormalized
-
     private String studentEmail; // Denormalized
+
+    @Indexed
+    private String subscriptionId; // Reference to active subscription
+
+    // Session date info
+    private LocalDate sessionDate;
+    private Integer sessionMonth; // 1-12 (extracted from session date)
+    private Integer sessionYear; // e.g., 2026
+
+    // Monthly session tracking
+    @Builder.Default
+    private Integer sessionCountThisMonth = 0; // Running count of sessions this month
+
+    @Builder.Default
+    private Boolean isOverLimit = false; // Flag if exceeded 8 sessions
 
     @Builder.Default
     private AttendanceStatus status = AttendanceStatus.ABSENT;
 
     private Instant markedAt;
 
-    private String markedBy; // Instructor ID who marked
-
-    private String markedByName; // Instructor name
-
-    private String remarks; // Optional notes (e.g., "Late by 15 minutes")
-
-    private Integer lateByMinutes; // If status is LATE
+    private String remarks; // Optional notes
 
     @CreatedDate
     private Instant createdAt;
 
-    // Helper
-    public void markPresent(String instructorId, String instructorName) {
+    // Helper methods
+    public void markPresent() {
         this.status = AttendanceStatus.PRESENT;
         this.markedAt = Instant.now();
-        this.markedBy = instructorId;
-        this.markedByName = instructorName;
     }
 
-    public void markAbsent(String instructorId, String instructorName) {
+    public void markAbsent() {
         this.status = AttendanceStatus.ABSENT;
         this.markedAt = Instant.now();
-        this.markedBy = instructorId;
-        this.markedByName = instructorName;
     }
 
-    public void markLate(String instructorId, String instructorName, int lateMinutes) {
-        this.status = AttendanceStatus.LATE;
-        this.lateByMinutes = lateMinutes;
-        this.markedAt = Instant.now();
-        this.markedBy = instructorId;
-        this.markedByName = instructorName;
+    public void updateSessionCount(int count, int limit) {
+        this.sessionCountThisMonth = count;
+        this.isOverLimit = count > limit;
     }
 }

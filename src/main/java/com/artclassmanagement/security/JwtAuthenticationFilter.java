@@ -1,6 +1,6 @@
 package com.artclassmanagement.security;
 
-import com.artclassmanagement.repository.UserRepository;
+import com.artclassmanagement.repository.TokenDenyListRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +11,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,41 +24,60 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final UserDetailsService userDetailsService;
+    private final TokenDenyListRepository tokenDenyListRepository;
 
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
+
+        final String requestURI = request.getRequestURI();
+        log.debug("--- JwtAuthenticationFilter for URI: {} ---", requestURI);
+
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        final String jwt = authHeader.substring(7);
+
         try {
-            userEmail = jwtService.extractUsername(jwt);
+            final String jti = jwtService.extractJti(jwt);
+            log.debug("FILTER: Checking token with JTI: {}", jti);
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userRepository.findByEmailAndDeletedFalse(userEmail)
-                        .orElse(null);
+            // Check if token is in deny list (logged out)
+            boolean isTokenDenied = tokenDenyListRepository.existsByJti(jti);
+            log.debug("FILTER: Is token JTI in deny list? -> {}", isTokenDenied);
 
-                if (userDetails != null && jwtService.isTokenValid(jwt, userDetails)) {
+            if (jti != null && isTokenDenied) {
+                log.warn("FILTER: ACCESS DENIED. Token with JTI {} is on the deny list.", jti);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"This token has been invalidated by logout.\"}");
+                return; // Stop the filter chain
+            }
+
+            final String username = jwtService.extractUsername(jwt);
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+                if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             userDetails.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.debug("FILTER: Successfully authenticated user '{}'", username);
                 }
             }
         } catch (Exception e) {
-            log.error("JWT validation failed: {}", e.getMessage());
+            log.error("FILTER: Cannot set user authentication: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

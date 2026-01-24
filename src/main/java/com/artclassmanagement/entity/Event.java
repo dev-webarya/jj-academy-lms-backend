@@ -9,8 +9,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Event - Workshops, exhibitions, competitions managed by admin
@@ -48,9 +46,6 @@ public class Event {
     private String imageUrl;
 
     private String bannerUrl;
-
-    @Builder.Default
-    private List<String> instructorIds = new ArrayList<>(); // Instructors involved
 
     private Integer maxParticipants;
 

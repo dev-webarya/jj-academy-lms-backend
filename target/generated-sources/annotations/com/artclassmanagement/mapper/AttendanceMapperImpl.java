@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-01-18T19:35:18+0530",
+    date = "2026-01-24T16:54:48+0530",
     comments = "version: 1.6.2, compiler: Eclipse JDT (IDE) 3.45.0.v20260101-2150, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
@@ -19,22 +19,24 @@ public class AttendanceMapperImpl implements AttendanceMapper {
             return null;
         }
 
-        AttendanceResponseDto attendanceResponseDto = new AttendanceResponseDto();
+        AttendanceResponseDto.AttendanceResponseDtoBuilder attendanceResponseDto = AttendanceResponseDto.builder();
 
-        attendanceResponseDto.setBatchId( entity.getBatchId() );
-        attendanceResponseDto.setCreatedAt( entity.getCreatedAt() );
-        attendanceResponseDto.setId( entity.getId() );
-        attendanceResponseDto.setLateByMinutes( entity.getLateByMinutes() );
-        attendanceResponseDto.setMarkedAt( entity.getMarkedAt() );
-        attendanceResponseDto.setMarkedBy( entity.getMarkedBy() );
-        attendanceResponseDto.setMarkedByName( entity.getMarkedByName() );
-        attendanceResponseDto.setRemarks( entity.getRemarks() );
-        attendanceResponseDto.setSessionId( entity.getSessionId() );
-        attendanceResponseDto.setStatus( entity.getStatus() );
-        attendanceResponseDto.setStudentEmail( entity.getStudentEmail() );
-        attendanceResponseDto.setStudentId( entity.getStudentId() );
-        attendanceResponseDto.setStudentName( entity.getStudentName() );
+        attendanceResponseDto.createdAt( entity.getCreatedAt() );
+        attendanceResponseDto.id( entity.getId() );
+        attendanceResponseDto.isOverLimit( entity.getIsOverLimit() );
+        attendanceResponseDto.markedAt( entity.getMarkedAt() );
+        attendanceResponseDto.remarks( entity.getRemarks() );
+        attendanceResponseDto.sessionCountThisMonth( entity.getSessionCountThisMonth() );
+        attendanceResponseDto.sessionDate( entity.getSessionDate() );
+        attendanceResponseDto.sessionId( entity.getSessionId() );
+        attendanceResponseDto.sessionMonth( entity.getSessionMonth() );
+        attendanceResponseDto.sessionYear( entity.getSessionYear() );
+        attendanceResponseDto.status( entity.getStatus() );
+        attendanceResponseDto.studentEmail( entity.getStudentEmail() );
+        attendanceResponseDto.studentId( entity.getStudentId() );
+        attendanceResponseDto.studentName( entity.getStudentName() );
+        attendanceResponseDto.subscriptionId( entity.getSubscriptionId() );
 
-        return attendanceResponseDto;
+        return attendanceResponseDto.build();
     }
 }
